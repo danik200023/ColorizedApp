@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class ViewController: UIViewController {
+final class SettingsViewController: UIViewController {
 
     @IBOutlet var redLabel: UILabel!
     @IBOutlet var greenLabel: UILabel!
@@ -19,17 +19,38 @@ final class ViewController: UIViewController {
     
     @IBOutlet var coloredView: UIView!
     
+    var mainVCBgColor: UIColor!
+    
+    weak var delegate: SettingsViewControllerDelegate?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let colorComponents = getRGB(from: mainVCBgColor)
+        redSlider.value = Float(colorComponents.red)
+        greenSlider.value = Float(colorComponents.green)
+        blueSlider.value = Float(colorComponents.blue)
         
         redLabel.text = getValue(from: redSlider)
         greenLabel.text = getValue(from: greenSlider)
         blueLabel.text = getValue(from: blueSlider)
         
         coloredView.layer.cornerRadius = 15
+        
         setColor()
     }
-
+    
+    @IBAction func doneButtonPressed() {
+        delegate?.setBackground(
+            with: coloredView.backgroundColor ?? UIColor(
+                red: 0,
+                green: 0,
+                blue: 0,
+                alpha: 0
+            )
+        )
+        dismiss(animated: true)
+    }
     
     @IBAction func sliderValueChanged(_ sender: UISlider) {
         setColor()
@@ -55,6 +76,17 @@ final class ViewController: UIViewController {
     
     private func getValue(from slider: UISlider) -> String {
         String(format: "%.2f", slider.value)
+    }
+    
+    private func getRGB(from color: UIColor) -> (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        
+        color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        
+        return (red, green, blue, alpha)
     }
 }
 
