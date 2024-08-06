@@ -34,14 +34,9 @@ final class SettingsViewController: UIViewController {
         greenTextField.delegate = self
         blueTextField.delegate = self
         
-        let colorComponents = getRGB(from: mainVCBgColor)
-        redSlider.value = Float(colorComponents.red)
-        greenSlider.value = Float(colorComponents.green)
-        blueSlider.value = Float(colorComponents.blue)
-        
-        setTextFrom(slider: redSlider)
-        setTextFrom(slider: greenSlider)
-        setTextFrom(slider: blueSlider)
+        setText(to: redSlider, blueSlider, greenSlider)
+        setText(to: redLabel, blueLabel, greenLabel)
+        setText(to: redTextField, blueTextField, greenTextField)
         
         coloredView.layer.cornerRadius = 15
         
@@ -54,20 +49,24 @@ final class SettingsViewController: UIViewController {
         }
     
     @IBAction func doneButtonPressed() {
-        delegate?.setBackground(
-            with: coloredView.backgroundColor ?? UIColor(
-                red: 0,
-                green: 0,
-                blue: 0,
-                alpha: 0
-            )
-        )
+        delegate?.setBackground(with: coloredView.backgroundColor ?? .white)
         dismiss(animated: true)
     }
     
     @IBAction func sliderValueChanged(_ sender: UISlider) {
+        switch sender {
+        case redSlider:
+            setText(to: redTextField)
+            setText(to: redLabel)
+        case redSlider:
+            setText(to: blueTextField)
+            setText(to: blueLabel)
+        default:
+            setText(to: blueTextField)
+            setText(to: blueLabel)
+        }
+        
         setColor()
-        setTextFrom(slider: sender)
     }
     
     private func setColor() {
@@ -83,32 +82,48 @@ final class SettingsViewController: UIViewController {
         String(format: "%.2f", slider.value)
     }
     
-    private func getRGB(from color: UIColor) -> (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var alpha: CGFloat = 0
-        
-        color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        
-        return (red, green, blue, alpha)
-    }
-    
-    private func setTextFrom(slider: UISlider) {
-        switch slider {
-        case redSlider:
-            redLabel.text = getValue(from: slider)
-            redTextField.text = getValue(from: slider)
-        case greenSlider:
-            greenLabel.text = getValue(from: slider)
-            greenTextField.text = getValue(from: slider)
-        default:
-            blueLabel.text = getValue(from: slider)
-            blueTextField.text = getValue(from: slider)
+    private func setText(to textFields: UITextField...) {
+        textFields.forEach { textField in
+            switch textField {
+            case redTextField:
+                textField.text = getValue(from: redSlider)
+            case greenTextField:
+                textField.text = getValue(from: greenSlider)
+            default:
+                textField.text = getValue(from: blueSlider)
+            }
         }
     }
     
-    private func showAlert(withTitle title: String, andMessage message: String, sender: UITextField) {
+    private func setText(to labels: UILabel...) {
+        labels.forEach { label in
+            switch label {
+            case redLabel:
+                redLabel.text = getValue(from: redSlider)
+            case greenLabel:
+                greenLabel.text = getValue(from: greenSlider)
+            default:
+                blueLabel.text = getValue(from: blueSlider)
+            }
+        }
+    }
+    
+    private func setText(to sliders: UISlider...) {
+        let color = CIColor(color: mainVCBgColor)
+        sliders.forEach { slider in
+            switch slider {
+            case redSlider:
+                redSlider.value = Float(color.red)
+            case greenSlider:
+                greenSlider.value = Float(color.green)
+            default:
+                blueSlider.value = Float(color.blue)
+            }
+        }
+    }
+
+    
+    private func showAlert(withTitle title: String, andMessage message: String, sender: UITextField? = nil) {
         let alert = UIAlertController(
                     title: title,
                     message: message,
@@ -116,8 +131,9 @@ final class SettingsViewController: UIViewController {
                 )
         
         let okAction = UIAlertAction(title: "OK", style: .default) { _ in
-                    sender.text = "0.50"
-                }
+            sender?.text = "0.50"
+            sender?.becomeFirstResponder()
+        }
         alert.addAction(okAction)
         present(alert, animated: true)
     }
